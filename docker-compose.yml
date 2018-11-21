@@ -1,0 +1,19 @@
+version: '2'
+
+services:
+  mageprod:
+    image: dockgento:latest
+    container_name: "mageprod"
+    hostname: mageprod
+    network_mode: bridge
+    environment:
+      SERVER_NAME: magento.prod
+      PHP_ERRORS: Off
+      PHP_TIMEZONE: "Asia/Jakarta"
+      PHP_MEMORY_LIMIT: "1G"
+      ENABLE_CRON: "1"
+      ENABLE_VARNISH: "1"
+    ports:
+      - 2202:2202
+    volumes:
+      - /var/data/magento:/magento/website
