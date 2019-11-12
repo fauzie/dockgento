@@ -1,16 +1,12 @@
 FROM        php:7.1-fpm-alpine
 
-ENV         COMPOSER_VERSION=1.7.3 \
-            PHPREDIS_VERSION=4.1.0 \
-            ALPINE_MIRROR=mirrors.ustc.edu.cn \
+ENV         COMPOSER_VERSION=1.8.4 \
+            PHPREDIS_VERSION=4.2.0 \
             HOME=/magento
 
 COPY        setup /setup
 
-RUN         echo "http://${ALPINE_MIRROR}/alpine/v3.8/main" > /etc/apk/repositories && \
-            echo "http://${ALPINE_MIRROR}/alpine/v3.8/community" >> /etc/apk/repositories && \
-            docker-php-source extract && \
-            \
+RUN         docker-php-source extract && \
             apk add --update --no-cache --virtual .build-dependencies \
             $PHPIZE_DEPS zlib-dev cyrus-sasl-dev autoconf gettext-dev pcre-dev \
             freetype-dev libjpeg-turbo-dev libpng-dev libmcrypt-dev g++ libtool make && \
@@ -34,9 +30,9 @@ RUN         echo "http://${ALPINE_MIRROR}/alpine/v3.8/main" > /etc/apk/repositor
             \
             docker-php-ext-install -j"$(getconf _NPROCESSORS_ONLN)" \
             intl bcmath xsl xml zip soap mysqli pdo pdo_mysql gmp json opcache \
-            dom redis iconv gd gettext exif mbstring simplexml xmlrpc mcrypt && \
-            \
-            mkdir -p /var/log/supervisor && \
+            dom redis iconv gd gettext exif mbstring simplexml xmlrpc mcrypt
+
+RUN         mkdir -p /var/log/supervisor && \
             mkdir -p /var/log/cron && \
             mkdir -m 0644 -p /var/spool/cron/crontabs && \
             touch /var/log/cron/cron.log && \
@@ -70,10 +66,11 @@ RUN         echo "http://${ALPINE_MIRROR}/alpine/v3.8/main" > /etc/apk/repositor
             echo "magento:${RANDPASS}" | chpasswd && \
             ssh-keygen -A
 
-ENV         SERVER_NAME="magento.local" \
+ENV         VIRTUAL_HOST="magento.local" \
             PATH="${PATH}:${HOME}/website/bin:${HOME}/.composer/vendor/bin" \
             SESSION_HANDLER="files" \
             SESSION_SAVE_PATH="/tmp/php/session" \
+            SSH_PUBLIC_KEY=0 \
             PHP_OPCACHE_ENABLE=Off \
             PHP_MEMORY_LIMIT=768M \
             PHP_UPLOAD_SIZE=50M \
@@ -88,4 +85,4 @@ ENV         SERVER_NAME="magento.local" \
 VOLUME      /magento/website
 WORKDIR     /magento/website
 
-ENTRYPOINT  /start.sh
+CMD         ["/bin/bash", "/start.sh"]
