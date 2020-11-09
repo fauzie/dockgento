@@ -49,9 +49,12 @@ if [[ ! -f /etc/.setuped ]]; then
       echo "alias mage=\"php -dmemory_limit=-1 ${HOME}/website/bin/magento\"" > $HOME/.profile
     fi
 
+    mv /setup/bashrc.txt $HOME/.bashrc
+    echo ". ~/.bashrc" > $HOME/.profile
     chown -R magento:magento $HOME
     # END Setup.
     touch /etc/.setuped
+    rm -rf /setup
 fi
 
 if [[ $SSH_PUBLIC_KEY != '0' ]]; then
