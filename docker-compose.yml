@@ -1,19 +1,64 @@
 version: '2'
 
 services:
-  mageprod:
-    image: fauzie/magetwo:latest
-    container_name: "mageprod"
-    hostname: mageprod
-    network_mode: bridge
+  mysql:
+    image: mysql/mysql-server:5.7
+    container_name: mysql
+    hostname: mysql
+    restart: always
+    networks:
+      magento:
+        ipv4_address: 10.10.10.2
     environment:
-      SERVER_NAME: magento.prod
-      PHP_ERRORS: Off
-      PHP_TIMEZONE: "Asia/Jakarta"
-      PHP_MEMORY_LIMIT: "1G"
-      ENABLE_CRON: "1"
-      ENABLE_VARNISH: "1"
-    ports:
-      - 2202:2202
+      MYSQL_ROOT_PASSWORD: 'YourMySqlPassw0rd'
+      MYSQL_ROOT_HOST: '10.10.10.%'
+
+  elasticsearch:
+    image: elasticsearch:7.6.2
+    hostname: elasticsearch
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    networks:
+      magento:
+        ipv4_address: 10.10.10.3
+
+  rabbitmq:
+    image: rabbitmq:3.8
+    hostname: rabbitmq
+    container_name: rabbitmq
+    restart: always
+    environment:
+      - NODENAME=magento
+      - RABBITMQ_DEFAULT_VHOST=rabbitmq
+    networks:
+      magento:
+        ipv4_address: 10.10.10.4
+
+  magento:
+    image: fauzie/magetwo:latest
+    container_name: magento
+    hostname: magento
+    restart: always
+    networks:
+      magento:
+        ipv4_address: 10.10.10.5
+    depends_on:
+      - mysql
+      - elasticsearch
+      - rabbitmq
+    environment:
+      SERVER_NAME: magento.local
+      PHP_TIMEZONE: Asia/Jakarta
+      PHP_MEMORY_LIMIT: -1
+      ENABLE_CRON: 1
     volumes:
       - /home/user/magento:/magento/website
+
+networks:
+  magento:
+    driver: bridge
+    subnet: 10.10.10.0/24
+    gateway: 10.10.10.1
