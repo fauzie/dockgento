@@ -2,7 +2,7 @@ version: '2'
 
 services:
   mageprod:
-    image: dockgento:latest
+    image: fauzie/magetwo:latest
     container_name: "mageprod"
     hostname: mageprod
     network_mode: bridge
@@ -16,4 +16,4 @@ services:
     ports:
       - 2202:2202
     volumes:
-      - /var/data/magento:/magento/website
+      - /home/user/magento:/magento/website

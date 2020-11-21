@@ -1,83 +1,63 @@
-FROM        php:7.1-fpm-alpine
+FROM  php:7.4-fpm-alpine
 
-ENV         COMPOSER_VERSION=1.10.17 \
-            PHPREDIS_VERSION=5.3.2 \
-            HOME=/magento
+LABEL maintainer="Rizal Fauzie <rizal@fauzie.id>"
 
-COPY        setup /setup
+ENV	COMPOSER_VERSION=1.10.17 \
+	PHPREDIS_VERSION=5.3.2 \
+	HOME=/magento \
+	VIRTUAL_HOST="magento.local" \
+	SSH_PUBLIC_KEY=0 \
+	PHP_OPCACHE_ENABLE=On \
+	PHP_MEMORY_LIMIT=768M \
+	PHP_UPLOAD_SIZE=50M \
+	PHP_MAX_EXECUTION=18000 \
+	PHP_POST_MAX_SIZE=8M \
+	PHP_TIMEZONE="Asia/Jakarta" \
+	PHP_ERRORS=On \
+	NGINX_ACCESS_LOG="/dev/stdout main" \
+	ENABLE_CRON=0
 
-RUN         docker-php-source extract && \
-            apk add --update --no-cache --virtual .build-dependencies \
-            $PHPIZE_DEPS zlib-dev cyrus-sasl-dev autoconf gettext-dev pcre-dev \
-            freetype-dev libjpeg-turbo-dev libpng-dev libmcrypt-dev g++ libtool make
+COPY  setup /setup
 
-RUN         apk add --no-cache wget htop nano zip unzip bash dcron git varnish \
-            ca-certificates openssh tini libintl icu icu-dev libxml2-dev libltdl \
-            gettext gmp-dev zlib freetype libjpeg-turbo libpng libmcrypt libxslt-dev pcre \
-            nginx nginx-mod-http-headers-more nginx-mod-http-cache-purge supervisor
+RUN   apk add --no-cache --update openssh bash redis supervisor \
+	nginx libpng libjpeg-turbo icu-libs zlib git wget curl zip unzip bash \
+	gettext freetype libxslt libcurl libintl libzip gmp libmcrypt
 
-RUN         wget https://github.com/phpredis/phpredis/archive/$PHPREDIS_VERSION.tar.gz -P /tmp && \
-            tar -xzf /tmp/$PHPREDIS_VERSION.tar.gz -C /tmp && \
-            mv /tmp/phpredis-$PHPREDIS_VERSION /usr/src/php/ext/redis
+RUN   apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
+ENV   LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
-RUN         docker-php-ext-configure bcmath --enable-bcmath && \
-            docker-php-ext-configure opcache --enable-opcache && \
-            docker-php-ext-configure intl --enable-intl && \
-            docker-php-ext-configure pdo_mysql --with-pdo-mysql && \
-            docker-php-ext-configure soap --enable-soap && \
-            docker-php-ext-configure mcrypt --enable-mcrypt && \
-            docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ && \
-            docker-php-ext-install -j"$(getconf _NPROCESSORS_ONLN)" \
-            intl bcmath xsl xml zip soap mysqli pdo pdo_mysql gmp json opcache \
-            dom redis iconv gd gettext exif mbstring simplexml xmlrpc mcrypt
+RUN   apk add --virtual .build-deps libxml2-dev libpng-dev libjpeg-turbo-dev libwebp-dev zlib-dev \
+	libmaxminddb-dev ncurses-dev gettext-dev gmp-dev icu-dev libxpm-dev libzip-dev curl-dev \
+	libxslt-dev freetype-dev make gcc g++ autoconf && \
+	export CFLAGS="$PHP_CFLAGS" CPPFLAGS="$PHP_CPPFLAGS" LDFLAGS="$PHP_LDFLAGS" && \
+	docker-php-source extract && \
+	echo no | pecl install redis && \
+	docker-php-ext-enable redis && \
+	docker-php-ext-configure gd --with-jpeg --with-freetype && \
+	docker-php-ext-configure intl --enable-intl && \
+	docker-php-ext-configure opcache --enable-opcache && \
+	docker-php-ext-install -j$(nproc) \
+	bcmath bcmath ctype curl gd gettext gmp iconv intl \
+	mysqli opcache pdo_mysql soap xsl sockets zip
 
-RUN         mkdir -p /var/log/supervisor && \
-            mkdir -p /var/log/cron && \
-            mkdir -m 0644 -p /var/spool/cron/crontabs && \
-            touch /var/log/cron/cron.log && \
-            cp /setup/crontab.txt /var/crontab.txt
+RUN   mkdir -p /var/log/supervisor && \
+	mkdir -p /var/log/cron && \
+	mkdir -m 0644 -p /var/spool/cron/crontabs && \
+	touch /var/log/cron/cron.log && \
+	cp /setup/crontab.txt /var/crontab.txt
 
-RUN         apk del .build-dependencies && \
-            docker-php-source delete && \
-            rm -rf /tmp/* /var/cache/apk/* && \
-            touch /var/log/supervisor.log
+RUN   apk del .build-deps && \
+	docker-php-source delete && \
+	rm -rf /tmp/* /var/cache/apk/* && \
+	touch /var/log/supervisor.log
 
-RUN         wget https://getcomposer.org/download/$COMPOSER_VERSION/composer.phar -O composer && \
-            mv composer /usr/local/bin/composer && \
-            chmod +x /usr/local/bin/composer
+RUN   cp /setup/php.ini /usr/local/etc/php/php.ini.tpl && \
+	cp /setup/nginx.conf /etc/nginx/nginx.conf && \
+	cp /setup/magento.conf /etc/nginx/conf.d/magento.conf && \
+	cp /setup/supervisor.conf /etc/supervisor.conf && \
+	mv /setup/start.sh /start.sh && \
+	chmod +x /start.sh
 
-RUN         cp /setup/php.ini /usr/local/etc/php/php.ini.tpl && \
-            cp /setup/nginx.conf /etc/nginx/nginx.conf && \
-            cp /setup/magento.conf /etc/nginx/conf.d/magento.conf && \
-            cp /setup/supervisor.conf /etc/supervisor.conf && \
-            cp /setup/default.vcl /etc/varnish/default.vcl && \
-            echo "VARNISH_LISTEN_PORT=80" > /etc/varnish/varnish.params && \
-            mv /setup/start.sh /start.sh && \
-            chmod +x /start.sh
-
-RUN         addgroup -g 1000 magento && \
-            adduser -h $HOME -u 1000 -s /bin/bash -D -G magento magento && \
-            RANDPASS=$(date +%s | sha256sum | base64 | head -c 32 ; echo) && \
-            echo "magento:${RANDPASS}" | chpasswd && \
-            ssh-keygen -A
-
-ENV         VIRTUAL_HOST="magento.local" \
-            PATH="${PATH}:${HOME}/website/bin:${HOME}/.composer/vendor/bin" \
-            SESSION_HANDLER="files" \
-            SESSION_SAVE_PATH="/tmp/php/session" \
-            SSH_PUBLIC_KEY=0 \
-            PHP_OPCACHE_ENABLE=Off \
-            PHP_MEMORY_LIMIT=768M \
-            PHP_UPLOAD_SIZE=50M \
-            PHP_MAX_EXECUTION=18000 \
-            PHP_POST_MAX_SIZE=8M \
-            PHP_TIMEZONE="Asia/Jakarta" \
-            PHP_ERRORS=On \
-            NGINX_ACCESS_LOG="/dev/stdout main" \
-            ENABLE_VARNISH=0 \
-            ENABLE_CRON=0
-
-VOLUME      /magento/website
-WORKDIR     /magento/website
-
-CMD         ["/bin/bash", "/start.sh"]
+VOLUME /magento/website
+WORKDIR /magento/website
+ENTRYPOINT  /start.sh
