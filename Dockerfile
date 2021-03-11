@@ -1,35 +1,33 @@
-FROM        php:7.1-fpm-alpine
+FROM        php:7.2-fpm-alpine
 
-ENV         COMPOSER_VERSION=1.10.17 \
-            PHPREDIS_VERSION=5.3.2 \
+ENV         COMPOSER_VERSION=1.10.20 \
             HOME=/magento
 
 COPY        setup /setup
 
-RUN         docker-php-source extract && \
-            apk add --update --no-cache --virtual .build-dependencies \
-            $PHPIZE_DEPS zlib-dev cyrus-sasl-dev autoconf gettext-dev pcre-dev \
-            freetype-dev libjpeg-turbo-dev libpng-dev libmcrypt-dev g++ libtool make
+RUN         apk add --update --no-cache --virtual .build-dependencies \
+            $PHPIZE_DEPS zlib-dev cyrus-sasl-dev autoconf gettext-dev \
+            ldb-dev libldap openldap-dev pcre-dev curl-dev freetype-dev \
+            libjpeg-turbo-dev libpng-dev libmcrypt-dev g++ libtool make
 
-RUN         apk add --no-cache wget htop nano zip unzip bash dcron git varnish \
-            ca-certificates openssh tini libintl icu icu-dev libxml2-dev libltdl \
+RUN         apk add --no-cache wget htop nano zip unzip bash dcron git curl varnish \
+            ca-certificates openssh tini libintl icu icu-dev libxml2-dev libltdl libldap \
             gettext gmp-dev zlib freetype libjpeg-turbo libpng libmcrypt libxslt-dev pcre \
             nginx nginx-mod-http-headers-more nginx-mod-http-cache-purge supervisor
 
-RUN         wget https://github.com/phpredis/phpredis/archive/$PHPREDIS_VERSION.tar.gz -P /tmp && \
-            tar -xzf /tmp/$PHPREDIS_VERSION.tar.gz -C /tmp && \
-            mv /tmp/phpredis-$PHPREDIS_VERSION /usr/src/php/ext/redis
-
-RUN         docker-php-ext-configure bcmath --enable-bcmath && \
+RUN         docker-php-source extract && \
             docker-php-ext-configure opcache --enable-opcache && \
             docker-php-ext-configure intl --enable-intl && \
             docker-php-ext-configure pdo_mysql --with-pdo-mysql && \
             docker-php-ext-configure soap --enable-soap && \
-            docker-php-ext-configure mcrypt --enable-mcrypt && \
             docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ && \
+            pecl install -o -f redis && \
+            docker-php-ext-enable redis && \
+            pecl install mcrypt-1.0.3 && \
+            docker-php-ext-enable mcrypt && \
             docker-php-ext-install -j"$(getconf _NPROCESSORS_ONLN)" \
-            intl bcmath xsl xml zip soap mysqli pdo pdo_mysql gmp json opcache \
-            dom redis iconv gd gettext exif mbstring simplexml xmlrpc mcrypt
+            bcmath gd gettext iconv intl ldap mbstring mysqli opcache pdo pdo_mysql \
+            simplexml soap sockets xml xmlrpc xsl zip
 
 RUN         mkdir -p /var/log/supervisor && \
             mkdir -p /var/log/cron && \
@@ -65,7 +63,6 @@ ENV         VIRTUAL_HOST="magento.local" \
             PATH="${PATH}:${HOME}/website/bin:${HOME}/.composer/vendor/bin" \
             SESSION_HANDLER="files" \
             SESSION_SAVE_PATH="/tmp/php/session" \
-            SSH_PUBLIC_KEY=0 \
             PHP_OPCACHE_ENABLE=Off \
             PHP_MEMORY_LIMIT=768M \
             PHP_UPLOAD_SIZE=50M \
@@ -74,6 +71,8 @@ ENV         VIRTUAL_HOST="magento.local" \
             PHP_TIMEZONE="Asia/Jakarta" \
             PHP_ERRORS=On \
             NGINX_ACCESS_LOG="/dev/stdout main" \
+            SSH_PUBLIC_KEY=0 \
+            ENABLE_IONCUBE=0 \
             ENABLE_VARNISH=0 \
             ENABLE_CRON=0
 
