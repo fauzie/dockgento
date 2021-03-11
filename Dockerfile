@@ -1,6 +1,6 @@
 FROM        php:7.1-fpm-alpine
 
-ENV         COMPOSER_VERSION=1.10.17 \
+ENV         COMPOSER_VERSION=1.10.20 \
             PHPREDIS_VERSION=5.3.2 \
             HOME=/magento
 
@@ -75,7 +75,8 @@ ENV         VIRTUAL_HOST="magento.local" \
             PHP_ERRORS=On \
             NGINX_ACCESS_LOG="/dev/stdout main" \
             ENABLE_VARNISH=0 \
-            ENABLE_CRON=0
+            ENABLE_CRON=0 \
+            ENABLE_IONCUBE=0
 
 VOLUME      /magento/website
 WORKDIR     /magento/website

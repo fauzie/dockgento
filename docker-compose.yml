@@ -1,18 +1,18 @@
 version: '2'
 
 services:
-  mageprod:
-    image: dockgento:latest
-    container_name: "mageprod"
-    hostname: mageprod
+  magetwo:
+    image: magetwo:7.1
+    container_name: "magetwo"
+    hostname: magetwo
     network_mode: bridge
     environment:
-      SERVER_NAME: magento.prod
-      PHP_ERRORS: Off
+      SERVER_NAME: magetwo.local
       PHP_TIMEZONE: "Asia/Jakarta"
       PHP_MEMORY_LIMIT: "1G"
-      ENABLE_CRON: "1"
-      ENABLE_VARNISH: "1"
+      ENABLE_CRON: "yes"
+      ENABLE_VARNISH: "yes"
+      ENABLE_IONCUBE: "yes"
     ports:
       - 2202:2202
     volumes:
