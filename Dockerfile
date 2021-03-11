@@ -2,11 +2,10 @@ FROM  php:7.4-fpm-alpine
 
 LABEL maintainer="Rizal Fauzie <rizal@fauzie.id>"
 
-ENV	COMPOSER_VERSION=1.10.17 \
+ENV	COMPOSER_VERSION=1.10.20 \
 	PHPREDIS_VERSION=5.3.2 \
 	HOME=/magento \
 	VIRTUAL_HOST="magento.local" \
-	SSH_PUBLIC_KEY=0 \
 	PHP_OPCACHE_ENABLE=On \
 	PHP_MEMORY_LIMIT=768M \
 	PHP_UPLOAD_SIZE=50M \
@@ -15,18 +14,20 @@ ENV	COMPOSER_VERSION=1.10.17 \
 	PHP_TIMEZONE="Asia/Jakarta" \
 	PHP_ERRORS=On \
 	NGINX_ACCESS_LOG="/dev/stdout main" \
+	SSH_PUBLIC_KEY=0 \
+	ENABLE_IONCUBE=0 \
 	ENABLE_CRON=0
 
-COPY  setup /setup
+COPY setup /setup
 
-RUN   apk add --no-cache --update openssh bash redis supervisor \
+RUN apk add --no-cache --update openssh bash redis supervisor \
 	nginx libpng libjpeg-turbo icu-libs zlib git wget curl zip unzip bash \
 	gettext freetype libxslt libcurl libintl libzip gmp libmcrypt
 
-RUN   apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
-ENV   LD_PRELOAD /usr/lib/preloadable_libiconv.so php
+RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
+ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
-RUN   apk add --virtual .build-deps libxml2-dev libpng-dev libjpeg-turbo-dev libwebp-dev zlib-dev \
+RUN apk add --virtual .build-deps libxml2-dev libpng-dev libjpeg-turbo-dev libwebp-dev zlib-dev \
 	libmaxminddb-dev ncurses-dev gettext-dev gmp-dev icu-dev libxpm-dev libzip-dev curl-dev \
 	libxslt-dev freetype-dev make gcc g++ autoconf && \
 	export CFLAGS="$PHP_CFLAGS" CPPFLAGS="$PHP_CPPFLAGS" LDFLAGS="$PHP_LDFLAGS" && \
@@ -40,18 +41,18 @@ RUN   apk add --virtual .build-deps libxml2-dev libpng-dev libjpeg-turbo-dev lib
 	bcmath bcmath ctype curl gd gettext gmp iconv intl \
 	mysqli opcache pdo_mysql soap xsl sockets zip
 
-RUN   mkdir -p /var/log/supervisor && \
+RUN mkdir -p /var/log/supervisor && \
 	mkdir -p /var/log/cron && \
 	mkdir -m 0644 -p /var/spool/cron/crontabs && \
 	touch /var/log/cron/cron.log && \
 	cp /setup/crontab.txt /var/crontab.txt
 
-RUN   apk del .build-deps && \
+RUN apk del .build-deps && \
 	docker-php-source delete && \
 	rm -rf /tmp/* /var/cache/apk/* && \
 	touch /var/log/supervisor.log
 
-RUN   cp /setup/php.ini /usr/local/etc/php/php.ini.tpl && \
+RUN cp /setup/php.ini /usr/local/etc/php/php.ini.tpl && \
 	cp /setup/nginx.conf /etc/nginx/nginx.conf && \
 	cp /setup/magento.conf /etc/nginx/conf.d/magento.conf && \
 	cp /setup/supervisor.conf /etc/supervisor.conf && \

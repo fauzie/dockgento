@@ -32,10 +32,23 @@ if [[ ! -f /etc/.setuped ]]; then
 	sed -ri 's/^user\s+.*/user = magento/' /usr/local/etc/php-fpm.d/www.conf
 	sed -ri 's/^group\s+.*/group = magento/' /usr/local/etc/php-fpm.d/www.conf
 
+	if [[ -f /usr/local/etc/php/php.ini.tpl ]]; then
+		rm -f /usr/local/etc/php/php.ini
+		cp /usr/local/etc/php/php.ini.tpl /usr/local/etc/php/php.ini
+		sed -i "s|@@PHP_ERRORS@@|$PHP_ERRORS|" /usr/local/etc/php/php.ini
+		sed -i "s|@@PHP_UPLOAD_SIZE@@|$PHP_UPLOAD_SIZE|" /usr/local/etc/php/php.ini
+		sed -i "s|@@PHP_POST_MAX_SIZE@@|$PHP_POST_MAX_SIZE|" /usr/local/etc/php/php.ini
+		sed -i "s|@@PHP_MAX_EXECUTION@@|$PHP_MAX_EXECUTION|" /usr/local/etc/php/php.ini
+		sed -i "s|@@PHP_OPCACHE_ENABLE@@|$PHP_OPCACHE_ENABLE|" /usr/local/etc/php/php.ini
+		sed -i "s|@@PHP_TIMEZONE@@|$PHP_TIMEZONE|" /usr/local/etc/php/php.ini
+		sed -i "s|@@PHP_MEMORY_LIMIT@@|$PHP_MEMORY_LIMIT|" /usr/local/etc/php/php.ini
+	fi
+
 	# Configure Nginx
 	mkdir -p /var/run/nginx
+	mkdir -p /var/tmp/nginx
 	chown -R magento:magento /var/tmp/nginx
-	chown -R magento:magento /run/nginx
+	chown -R magento:magento /var/run/nginx
 	sed -i "s|@@VIRTUAL_HOST@@|$VIRTUAL_HOST|" /etc/nginx/nginx.conf
 	sed -i "s|@@SERVER_ROOT@@|$HOME/website|" /etc/nginx/nginx.conf
 	sed -i "s|@@NGINX_ACCESS_LOG@@|$NGINX_ACCESS_LOG|" /etc/nginx/nginx.conf
@@ -70,23 +83,11 @@ if [[ ! -f /etc/.setuped ]]; then
 		echo " "
 	fi
 
+	# Configure Cron
 	if [[ -f /var/spool/cron/crontabs/root ]]; then
 		rm /var/spool/cron/crontabs/root
 	fi
-
-	if [[ -f /usr/local/etc/php/php.ini.tpl ]]; then
-		rm -f /usr/local/etc/php/php.ini
-		cp /usr/local/etc/php/php.ini.tpl /usr/local/etc/php/php.ini
-		sed -i "s|@@PHP_ERRORS@@|$PHP_ERRORS|" /usr/local/etc/php/php.ini
-		sed -i "s|@@PHP_UPLOAD_SIZE@@|$PHP_UPLOAD_SIZE|" /usr/local/etc/php/php.ini
-		sed -i "s|@@PHP_POST_MAX_SIZE@@|$PHP_POST_MAX_SIZE|" /usr/local/etc/php/php.ini
-		sed -i "s|@@PHP_MAX_EXECUTION@@|$PHP_MAX_EXECUTION|" /usr/local/etc/php/php.ini
-		sed -i "s|@@PHP_OPCACHE_ENABLE@@|$PHP_OPCACHE_ENABLE|" /usr/local/etc/php/php.ini
-		sed -i "s|@@PHP_TIMEZONE@@|$PHP_TIMEZONE|" /usr/local/etc/php/php.ini
-		sed -i "s|@@PHP_MEMORY_LIMIT@@|$PHP_MEMORY_LIMIT|" /usr/local/etc/php/php.ini
-	fi
-
-	if [[ $ENABLE_CRON = '1' ]]; then
+	if [[ $ENABLE_CRON != '0' ]]; then
 		cp /var/crontab.txt /var/spool/cron/crontabs/magento
 		chmod 0600 /var/spool/cron/crontabs/magento
 		cat >> /etc/supervisor.conf <<- CRONCFG
@@ -100,6 +101,13 @@ if [[ ! -f /etc/.setuped ]]; then
 		CRONCFG
 	elif [[ -f /var/spool/cron/crontabs/magento ]]; then
 		rm /var/spool/cron/crontabs/magento
+	fi
+
+	# Configure Ioncube
+	if [[ $ENABLE_IONCUBE != '0' ]]; then
+		PHP_EXT_DIR=$(php -r "echo ini_get('extension_dir');")
+		cp /setup/ioncube.so $PHP_EXT_DIR
+		echo 'zend_extension=ioncube.so' > $PHP_INI_DIR/conf.d/00-ioncube.ini
 	fi
 
 	mv /setup/bashrc.txt $HOME/.bashrc
