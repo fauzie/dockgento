@@ -1,19 +1,15 @@
 version: '2'
 
 services:
-  mageprod:
+  magetwo:
     image: fauzie/magetwo:latest
-    container_name: "mageprod"
-    hostname: mageprod
+    container_name: "magetwo"
+    hostname: magetwo
     network_mode: bridge
     environment:
-      SERVER_NAME: magento.prod
-      PHP_ERRORS: Off
+      SERVER_NAME: magetwo.local
       PHP_TIMEZONE: "Asia/Jakarta"
-      PHP_MEMORY_LIMIT: "1G"
+      ENABLE_IONCUBE: "1"
       ENABLE_CRON: "1"
-      ENABLE_VARNISH: "1"
-    ports:
-      - 2202:2202
     volumes:
-      - /home/user/magento:/magento/website
+      - /home/fauzie/Public/vuemage:/magento/website
