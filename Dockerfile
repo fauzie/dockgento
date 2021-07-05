@@ -54,7 +54,7 @@ RUN apk del .build-deps && \
 
 RUN cp /setup/php.ini /usr/local/etc/php/php.ini.tpl && \
 	cp /setup/nginx.conf /etc/nginx/nginx.conf && \
-	cp /setup/magento.conf /etc/nginx/conf.d/magento.conf && \
+	mkdir -p /etc/nginx/conf.d/ && cp /setup/magento.conf /etc/nginx/conf.d/magento.conf && \
 	cp /setup/supervisor.conf /etc/supervisor.conf && \
 	mv /setup/start.sh /start.sh && \
 	chmod +x /start.sh
