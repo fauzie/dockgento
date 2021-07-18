@@ -110,6 +110,8 @@ if [[ ! -f /etc/.setuped ]]; then
 		echo 'zend_extension=ioncube.so' > $PHP_INI_DIR/conf.d/00-ioncube.ini
 	fi
 
+	cp /setup/magelist.txt $HOME/.magelist
+	chown magento:magento $HOME/.magelist
 	mv /setup/bashrc.txt $HOME/.bashrc
 	echo ". ~/.bashrc" > $HOME/.profile
 	chown magento:magento $HOME/.bashrc

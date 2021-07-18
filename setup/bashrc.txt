@@ -1,12 +1,12 @@
 PATH=$PATH:$HOME/website/bin:$HOME/.composer/vendor/bin
+MAGE_CMD_FILE=$HOME/.magelist
 
 # Source global definitions
 if [ -f /etc/bashrc ]; then
 	. /etc/bashrc
 fi
 
-# User specific aliases and functions
-
+## User specific aliases and functions
 function parse_git_branch() {
 	BRANCH=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
 	if [ ! "${BRANCH}" == "" ]
@@ -18,7 +18,7 @@ function parse_git_branch() {
 	fi
 }
 
-# get current status of git repo
+## get current status of git repo
 function parse_git_dirty {
 	status=`git status 2>&1 | tee`
 	dirty=`echo -n "${status}" 2> /dev/null | grep "modified:" &> /dev/null; echo "$?"`
@@ -53,6 +53,18 @@ function parse_git_dirty {
 	fi
 }
 
+## Magento cli auto complete
+function _mage() {
+    COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
+    if [ -f "$MAGE_CMD_FILE" ]; then
+        COMMANDS=$(cat "$MAGE_CMD_FILE")
+    else
+        COMMANDS=$(php bin/magento --raw --no-ansi list | awk '{print $1}')
+    fi
+    COMPREPLY=(`compgen -W "$COMMANDS" -- "${COMP_WORDS[COMP_CWORD]}"`)
+    return 0
+}
+
 PS1="\[\e[01;31m\]\h\[\e[m\]@\[\e[01;32m\]\u\[\e[m\] \[\e[36m\]\w\[\e[m\] \[\e[33m\]\`parse_git_branch\`\[\e[m\]\$ "
 
 #magento2
@@ -73,5 +85,8 @@ alias magereindex='php -d memory_limit=-1 bin/magento indexer:reindex'
 alias magecompile='php -d memory_limit=-1 bin/magento setup:di:compile'
 alias mageclearall='mageclearcache && mageclearpub && mageclearvar && mageflush'
 alias mageupgrademodule='php -d memory_limit=-1 bin/magento setup:upgrade && magecompile'
+
+# register autocomplete
+complete -F _mage mage
 
 cd $HOME/website
