@@ -49,6 +49,9 @@ if [[ ! -f /etc/.setuped ]]; then
 	mkdir -p /var/tmp/nginx
 	chown -R magento:magento /var/tmp/nginx
 	chown -R magento:magento /var/run/nginx
+	[ -d "/var/lib/nginx" ] && [ ! -L "/var/lib/nginx" ] && chown -R magento:magento /var/lib/nginx
+	[ -d "/var/log/nginx" ] && [ ! -L "/var/log/nginx" ] && chown -R magento:magento /var/log/nginx
+	[ -d "/var/cache/nginx" ] && [ ! -L "/var/cache/nginx" ] && chown -R magento:magento /var/cache/nginx
 	sed -i "s|@@VIRTUAL_HOST@@|$VIRTUAL_HOST|" /etc/nginx/nginx.conf
 	sed -i "s|@@SERVER_ROOT@@|$HOME/website|" /etc/nginx/nginx.conf
 	sed -i "s|@@NGINX_ACCESS_LOG@@|$NGINX_ACCESS_LOG|" /etc/nginx/nginx.conf

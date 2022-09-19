@@ -24,9 +24,6 @@ RUN apk add --no-cache --update openssh bash redis supervisor \
 	nginx libpng libjpeg-turbo icu-libs zlib git wget curl zip unzip bash \
 	gettext freetype libxslt libcurl libintl libzip gmp libmcrypt
 
-RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
-ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
-
 RUN apk add --virtual .build-deps libxml2-dev libpng-dev libjpeg-turbo-dev libwebp-dev zlib-dev \
 	libmaxminddb-dev ncurses-dev gettext-dev gmp-dev icu-dev libxpm-dev libzip-dev curl-dev \
 	libxslt-dev freetype-dev make gcc g++ autoconf && \
@@ -38,7 +35,7 @@ RUN apk add --virtual .build-deps libxml2-dev libpng-dev libjpeg-turbo-dev libwe
 	docker-php-ext-configure intl --enable-intl && \
 	docker-php-ext-configure opcache --enable-opcache && \
 	docker-php-ext-install -j$(nproc) \
-	bcmath bcmath ctype curl gd gettext gmp iconv intl \
+	bcmath bcmath ctype curl gd gettext gmp intl \
 	mysqli opcache pdo_mysql soap xsl sockets zip
 
 RUN mkdir -p /var/log/supervisor && \
