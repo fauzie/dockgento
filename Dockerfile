@@ -1,8 +1,8 @@
-FROM  php:7.4-fpm-alpine
+FROM  php:8-fpm-alpine
 
 LABEL maintainer="Rizal Fauzie <rizal@fauzie.id>"
 
-ENV	COMPOSER_VERSION=1.10.20 \
+ENV	COMPOSER_VERSION=2.4.2 \
 	PHPREDIS_VERSION=5.3.2 \
 	HOME=/magento \
 	VIRTUAL_HOST="magento.local" \
@@ -22,12 +22,12 @@ COPY setup /setup
 
 RUN apk add --no-cache --update openssh bash redis supervisor \
 	nginx libpng libjpeg-turbo icu-libs zlib git wget curl zip unzip bash \
-	gettext freetype libxslt libcurl libintl libzip gmp libmcrypt
+	gettext freetype libxslt libintl libzip gmp libmcrypt
 
-RUN apk add --virtual .build-deps libxml2-dev libpng-dev libjpeg-turbo-dev libwebp-dev zlib-dev \
-	libmaxminddb-dev ncurses-dev gettext-dev gmp-dev icu-dev libxpm-dev libzip-dev curl-dev \
-	libxslt-dev freetype-dev make gcc g++ autoconf && \
-	export CFLAGS="$PHP_CFLAGS" CPPFLAGS="$PHP_CPPFLAGS" LDFLAGS="$PHP_LDFLAGS" && \
+RUN apk add --virtual .build-deps libxml2-dev libpng-dev libzip-dev libjpeg-turbo-dev libwebp-dev zlib-dev curl-dev \
+    gmp-dev ncurses-dev gettext-dev icu-dev libxpm-dev libxslt-dev libmcrypt-dev freetype-dev make gcc g++ autoconf
+
+RUN export CFLAGS="$PHP_CFLAGS" CPPFLAGS="$PHP_CPPFLAGS" LDFLAGS="$PHP_LDFLAGS" && \
 	docker-php-source extract && \
 	echo no | pecl install redis && \
 	docker-php-ext-enable redis && \
@@ -35,7 +35,7 @@ RUN apk add --virtual .build-deps libxml2-dev libpng-dev libjpeg-turbo-dev libwe
 	docker-php-ext-configure intl --enable-intl && \
 	docker-php-ext-configure opcache --enable-opcache && \
 	docker-php-ext-install -j$(nproc) \
-	bcmath bcmath ctype curl gd gettext gmp intl \
+	bcmath bcmath ctype curl gd gettext gmp intl pcntl \
 	mysqli opcache pdo_mysql soap xsl sockets zip
 
 RUN mkdir -p /var/log/supervisor && \

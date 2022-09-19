@@ -1,9 +1,12 @@
 Docker :heart: Magento 2
 ========================
 
+[![Docker Images List](https://img.shields.io/badge/DockerHub-Dockgento-orange.svg?logo=Docker&style=flat-square)](https://hub.docker.com/r/fauzie/magetwo)
+[![Docker Image Size (latest)](https://img.shields.io/docker/image-size/fauzie/magetwo/latest?style=flat-square)](https://hub.docker.com/r/fauzie/magetwo/tags)
+
 Docker image for Magento 2 any version, add your own magento directory with volume mapping. This image will not install your magento, volume mapping to `/magento/website` is required with separated database container.
 
-- Nginx with php-fpm 7.4
+- Nginx with php-fpm 8.1
 - PHP composer ready
 - User & group name `magento`
 - Home directory `/magento`
