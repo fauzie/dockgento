@@ -2,8 +2,8 @@ FROM  php:8-fpm-alpine
 
 LABEL maintainer="Rizal Fauzie <rizal@fauzie.id>"
 
-ENV	COMPOSER_VERSION=2.4.2 \
-	PHPREDIS_VERSION=5.3.2 \
+ENV	COMPOSER_VERSION=2.5.8 \
+	PHPREDIS_VERSION=5.3.7 \
 	HOME=/magento \
 	VIRTUAL_HOST="magento.local" \
 	PHP_OPCACHE_ENABLE=On \
@@ -20,7 +20,7 @@ ENV	COMPOSER_VERSION=2.4.2 \
 
 COPY setup /setup
 
-RUN apk add --no-cache --update openssh bash redis supervisor \
+RUN apk add --no-cache --update linux-headers openssh bash redis supervisor \
 	nginx libpng libjpeg-turbo icu-libs zlib git wget curl zip unzip bash \
 	gettext freetype libxslt libintl libzip gmp libmcrypt
 

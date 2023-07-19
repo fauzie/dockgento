@@ -2,14 +2,6 @@
 
 set -m
 
-if [[ ! -d "${HOME}/website" ]]; then
-	echo "=========================================================="
-	echo " Please mount your Magento 2.x root directory to:"
-	echo " /magento/website"
-	echo "=========================================================="
-	exit 1
-fi
-
 if [[ ! -f /etc/.setuped ]]; then
 	addgroup -g 1000 magento
 	adduser -h $HOME -u 1000 -s /bin/bash -D -G magento magento
@@ -111,6 +103,17 @@ if [[ ! -f /etc/.setuped ]]; then
 		PHP_EXT_DIR=$(php -r "echo ini_get('extension_dir');")
 		cp /setup/ioncube.so $PHP_EXT_DIR
 		echo 'zend_extension=ioncube.so' > $PHP_INI_DIR/conf.d/00-ioncube.ini
+	fi
+
+	if [[ ! -d "${HOME}/website/bin" ]]; then
+		echo "=========================================================="
+		echo " No mounted Magento directory on: /magento/website"
+		echo " Installing latest Magento 2.4 ......"
+		echo "=========================================================="
+		mkdir -p /magento/website
+		rm -rf /magento/website/*
+		su - magento -c "/usr/local/bin/php /usr/local/bin/composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition /magento/website"
+		echo " "
 	fi
 
 	cp /setup/magelist.txt $HOME/.magelist
