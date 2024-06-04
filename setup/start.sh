@@ -128,4 +128,6 @@ if [[ ! -f /etc/.setuped ]]; then
 fi
 
 # END : run supervisor
-/usr/bin/supervisord -c /etc/supervisor.conf
+/usr/bin/supervisord -n -c /etc/supervisor.conf
+
+exec "$@"

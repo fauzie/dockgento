@@ -22,7 +22,8 @@ COPY setup /setup
 
 RUN apk add --no-cache --update linux-headers openssh bash redis supervisor \
 	nginx libpng libjpeg-turbo icu-libs zlib git wget curl zip unzip bash \
-	gettext freetype libxslt libintl libzip gmp libmcrypt
+	gettext freetype libxslt libintl libzip gmp libmcrypt \
+	musl musl-utils musl-locales tzdata musl-locales-lang icu-data-full
 
 RUN apk add --virtual .build-deps libxml2-dev libpng-dev libzip-dev libjpeg-turbo-dev libwebp-dev zlib-dev curl-dev \
     gmp-dev ncurses-dev gettext-dev icu-dev libxpm-dev libxslt-dev libmcrypt-dev freetype-dev make gcc g++ autoconf
