@@ -20,9 +20,10 @@ ENV	COMPOSER_VERSION=1.10.20 \
 
 COPY setup /setup
 
-RUN apk add --no-cache --update openssh bash redis supervisor \
+RUN apk add --no-cache --update openssh bash redis supervisor nano \
 	nginx libpng libjpeg-turbo icu-libs zlib git wget curl zip unzip bash \
-	gettext freetype libxslt libcurl libintl libzip gmp libmcrypt
+	gettext freetype libxslt libcurl libintl libzip gmp libmcrypt \
+	musl musl-utils musl-locales tzdata musl-locales-lang icu-data-full
 
 RUN apk add --virtual .build-deps libxml2-dev libpng-dev libjpeg-turbo-dev libwebp-dev zlib-dev \
 	libmaxminddb-dev ncurses-dev gettext-dev gmp-dev icu-dev libxpm-dev libzip-dev curl-dev \
