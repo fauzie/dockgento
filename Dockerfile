@@ -1,9 +1,9 @@
-FROM  php:8-fpm-alpine
+FROM  php:8.2-fpm-alpine
 
 LABEL maintainer="Rizal Fauzie <rizal@fauzie.id>"
 
-ENV	COMPOSER_VERSION=2.5.8 \
-	PHPREDIS_VERSION=5.3.7 \
+ENV	COMPOSER_VERSION=2.7.7 \
+	PHPREDIS_VERSION=6.0.2 \
 	HOME=/magento \
 	VIRTUAL_HOST="magento.local" \
 	PHP_OPCACHE_ENABLE=On \
