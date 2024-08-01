@@ -1,8 +1,8 @@
-FROM  php:8-fpm-alpine
+FROM  php:8.1-fpm-alpine
 
 LABEL maintainer="Rizal Fauzie <rizal@fauzie.id>"
 
-ENV	COMPOSER_VERSION=2.5.8 \
+ENV	COMPOSER_VERSION=2.7.7 \
 	PHPREDIS_VERSION=5.3.7 \
 	HOME=/magento \
 	VIRTUAL_HOST="magento.local" \
